@@ -34,11 +34,11 @@ import java.util.UUID;
 @Service
 public class GoogleUserService {
 
-    @Value("${google.client-id}")
-    String googleClientId;
-
-    @Value("${google.client-secret}")
-    String googleClientSecret;
+//    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+//    String googleClientId;
+//
+//    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
+//    String googleClientSecret;
 
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
@@ -71,10 +71,10 @@ public class GoogleUserService {
 
         // 바디에 필요한 정보 담기
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("client_id" , googleClientId);
-        body.add("client_secret", googleClientSecret);
+        body.add("client_id" , "900854927186-8iv6ke6qdiehl5v2t6gbge8pjo0agk46.apps.googleusercontent.com");
+        body.add("client_secret", "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");
         body.add("code", code);
-        body.add("redirect_uri", "https://make-cake.com/user/google/callback");
+        body.add("redirect_uri", "http://localhost:8080/user/google/callback");
         body.add("grant_type", "authorization_code");
 
         // POST 요청 보내기
