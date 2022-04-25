@@ -35,7 +35,5 @@ public class ResponseDto {
     }
 
 
-//    public ResponseDto(String username) {
-//        this.user
-//    }
+
 }

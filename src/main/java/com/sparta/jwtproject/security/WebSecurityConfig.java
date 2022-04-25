@@ -153,20 +153,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     // CORS=============================================================================
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-//        configuration.addAllowedOrigin("http://localhost:3000"); // 배포 주소
-//        configuration.setAllowCredentials(true);
-        configuration.addAllowedMethod("*");
-        configuration.addAllowedHeader("*");
-        configuration.addExposedHeader("Authorization");
-        configuration.addAllowedOriginPattern("*");
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+////        configuration.addAllowedOrigin("http://localhost:3000"); // 배포 주소
+////        configuration.setAllowCredentials(true);
+//        configuration.addAllowedMethod("*");
+//        configuration.addAllowedHeader("*");
+//        configuration.addExposedHeader("Authorization");
+//        configuration.addAllowedOriginPattern("*");
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration);
+//        return source;
+//    }
     // ======================================================================================
 
     @Bean
