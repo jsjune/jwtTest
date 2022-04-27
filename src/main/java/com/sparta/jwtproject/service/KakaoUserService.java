@@ -1,6 +1,5 @@
 package com.sparta.jwtproject.service;
 
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -106,13 +105,13 @@ public class KakaoUserService {
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
-        
-        Long username = jsonNode.get("id").asLong();
+
+        String provider = "kakao";
+        String username = provider + "_" + jsonNode.get("id").asText();
         String nickname = jsonNode.get("properties")
                 .get("nickname").asText();
 
-
-        return new KakaoUserInfoDto(nickname);
+        return new KakaoUserInfoDto(username, nickname);
 
     }
 
@@ -132,7 +131,12 @@ public class KakaoUserService {
             String password = UUID.randomUUID().toString();
             String encodedPassword = passwordEncoder.encode(password);
 
-            kakaoUser = new User(kakaousername, encodedPassword,nickname);
+            String userImageUrl="없음";
+            Long userExp=0L;
+            Long userLevel=0L;
+            Long totalPrice=0L;
+
+            kakaoUser = new User(kakaousername, encodedPassword,nickname,userImageUrl,userExp,userLevel,totalPrice);
             userRepository.save(kakaoUser);
 
         }

@@ -3,6 +3,8 @@ package com.sparta.jwtproject.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sparta.jwtproject.dto.GoogleUserInfoDto;
+import com.sparta.jwtproject.dto.KakaoUserInfoDto;
 import com.sparta.jwtproject.model.User;
 import com.sparta.jwtproject.repository.UserRepository;
 import com.sparta.jwtproject.security.UserDetailsImpl;
@@ -44,23 +46,23 @@ public class GoogleUserService {
     // 구글 로그인
     public void googleLogin(String code, HttpServletResponse response) throws JsonProcessingException {
 
-        // 인가코드로 엑세스토큰 가져오기
+        // 1. 인가코드로 엑세스토큰 가져오기
         String accessToken = getAccessToken(code);
 
-        // 엑세스토큰으로 유저정보 가져오기
-        JsonNode googleUserInfo = getGoogleUserInfo(accessToken);
+        // 2. 엑세스토큰으로 유저정보 가져오기
+        GoogleUserInfoDto googleUserInfo = getGoogleUserInfo(accessToken);
 
-        // 유저확인 & 회원가입
+        // 3. 유저확인 & 회원가입
         com.sparta.jwtproject.model.User foundUser = getUser(googleUserInfo);
 
-        // 시큐리티 강제 로그인
+        // 4. 시큐리티 강제 로그인
         Authentication authentication = securityLogin(foundUser);
 
-        // jwt 토큰 발급
+        // 5. jwt 토큰 발급
         jwtToken(authentication, response);
     }
 
-    // 인가코드로 엑세스토큰 가져오기
+    // 1. 인가코드로 엑세스토큰 가져오기
     private String getAccessToken(String code) throws JsonProcessingException {
 
         // 헤더에 Content-type 지정
@@ -92,8 +94,8 @@ public class GoogleUserService {
         return accessToken;
     }
 
-    // 엑세스토큰으로 유저정보 가져오기
-    private JsonNode getGoogleUserInfo(String accessToken) throws JsonProcessingException {
+    // 2. 엑세스토큰으로 유저정보 가져오기
+    private GoogleUserInfoDto getGoogleUserInfo(String accessToken) throws JsonProcessingException {
 
         // 헤더에 엑세스토큰 담기, Content-type 지정
         HttpHeaders headers = new HttpHeaders();
@@ -112,56 +114,75 @@ public class GoogleUserService {
         // response에서 유저정보 가져오기
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode googleUserInfo = objectMapper.readTree(responseBody);
-        return googleUserInfo;
+        JsonNode jsonNode = objectMapper.readTree(responseBody);
+
+        String provider = "google";
+        String username = provider + "_" + jsonNode.get("sub").asText();
+        String nickname = jsonNode.get("name").asText();
+
+        return new GoogleUserInfoDto(username, nickname);
+
     }
 
-    // 유저확인 & 회원가입
-    private com.sparta.jwtproject.model.User getUser(JsonNode googleUserInfo) {
+    // 3. 유저확인 & 회원가입
+    private User getUser(GoogleUserInfoDto googleUserInfo) {
 
         // 유저정보 작성
-        String providerId = googleUserInfo.get("sub").asText();
-        String providerEmail = googleUserInfo.get("email").asText();
-        String provider = "google";
-        String username = provider + "_" + providerId;
-        String nickname = googleUserInfo.get("name").asText();
-        Optional<User> nicknameCheck = userRepository.findByNickname(nickname);
-        if (nicknameCheck.isPresent()) {
-            String tempNickname = nickname;
-            int i = 1;
-            while (true){
-                nickname = tempNickname + "_" + i;
-                Optional<User> nicknameCheck2 = userRepository.findByNickname(nickname);
-                if (!nicknameCheck2.isPresent()) {
-                    break;
-                }
-                i++;
-            }
-        }
-        String password = passwordEncoder.encode(UUID.randomUUID().toString());
-//        String profileImgUrl = "https://makecake.s3.ap-northeast-2.amazonaws.com/PROFILE/ef771589-abc6-4ddd-951c-73cc2420aa2fKakaoTalk_20220329_214148108.png";
-//        UserRoleEnum role = UserRoleEnum.USER;
+//        String providerId = googleUserInfo.get("sub").asText();
+//        String providerEmail = googleUserInfo.get("email").asText();
+//        String provider = "google";
+//        String username = provider + "_" + providerId;
+//        String nickname = googleUserInfo.get("name").asText();
+//        if (nicknameCheck.isPresent()) {
+//            String tempNickname = nickname;
+//            int i = 1;
+//            while (true){
+//                nickname = tempNickname + "_" + i;
+//                Optional<User> nicknameCheck2 = userRepository.findByNickname(nickname);
+//                if (!nicknameCheck2.isPresent()) {
+//                    break;
+//                }
+//                i++;
+//            }
+//        }
+//        String password = passwordEncoder.encode(UUID.randomUUID().toString());
+//        // DB에서 username으로 가져오기 없으면 회원가입
+//        User findUser = userRepository.findByUsername(username).orElse(null);
+//        if (findUser == null) {
+//            findUser = User.builder()
+//                    .username(username)
+//                    .nickname(nickname)
+//                    .password(password)
+////                    .profileImgUrl(profileImgUrl)
+////                    .profileImgName(null)
+////                    .role(role)
+////                    .provider(provider)
+////                    .providerId(providerId)
+////                    .providerEmail(providerEmail)
+//                    .build();
+//            userRepository.save(findUser);
+//        }
+//        return findUser;
 
-        // DB에서 username으로 가져오기 없으면 회원가입
-        User findUser = userRepository.findByUsername(username).orElse(null);
-        if (findUser == null) {
-            findUser = User.builder()
-                    .username(username)
-                    .nickname(nickname)
-                    .password(password)
-//                    .profileImgUrl(profileImgUrl)
-//                    .profileImgName(null)
-//                    .role(role)
-//                    .provider(provider)
-//                    .providerId(providerId)
-//                    .providerEmail(providerEmail)
-                    .build();
-            userRepository.save(findUser);
+        String googlename = googleUserInfo.getUsername();
+        User googleUser = userRepository.findByUsername(googlename).orElse(null);
+
+        if (googleUser == null) {
+            String nickname = googleUserInfo.getNickname();
+            String password = UUID.randomUUID().toString();
+            String encodedPassword = passwordEncoder.encode(password);
+
+            String userImageUrl="없음";
+            Long userExp=0L;
+            Long userLevel=0L;
+            Long totalPrice=0L;
+            googleUser = new User(googlename,encodedPassword, nickname,userImageUrl,userExp,userLevel,totalPrice);
         }
-        return findUser;
+
+        return googleUser;
     }
 
-    // 시큐리티 강제 로그인
+    // 4. 시큐리티 강제 로그인
     private Authentication securityLogin(User findUser) {
 
 //        // userDetails 생성
@@ -182,7 +203,7 @@ public class GoogleUserService {
         return authentication;
     }
 
-    // jwt 토큰 발급
+    // 5. jwt 토큰 발급
     private void jwtToken(Authentication authentication,HttpServletResponse response) {
         UserDetailsImpl userDetailsImpl = ((UserDetailsImpl) authentication.getPrincipal());
         String token = JwtTokenUtils.generateJwtToken(userDetailsImpl);

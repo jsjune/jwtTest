@@ -20,20 +20,9 @@ import javax.servlet.http.HttpServletResponse;
 @RestController
 public class UserController {
 
-    private final UserService userService;
     private final KakaoUserService kakaoUserService;
     private final GoogleUserService googleUserService;
     private final NaverUserService naverUserService;
-
-    @PostMapping("/user/signup")
-    public ResponseDto signup(@RequestBody SignUpRequestDto requestDto) {
-        return userService.registerUser(requestDto);
-    }
-
-    @GetMapping("/user/loginCheck")
-    public ResponseDto home(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return new ResponseDto(userDetails.getNickname());
-    }
 
     // 카카오 로그인
     @GetMapping("/user/kakao/callback")

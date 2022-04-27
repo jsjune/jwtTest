@@ -5,6 +5,8 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sparta.jwtproject.dto.KakaoUserInfoDto;
+import com.sparta.jwtproject.dto.NaverUserInfoDto;
 import com.sparta.jwtproject.model.User;
 import com.sparta.jwtproject.repository.UserRepository;
 import com.sparta.jwtproject.security.UserDetailsImpl;
@@ -46,23 +48,23 @@ public class NaverUserService {
     // 네이버 로그인
     public void naverLogin(String code, String state, HttpServletResponse response) throws JsonProcessingException {
 
-        // 인가코드로 엑세스토큰 가져오기
+        // 1. 인가코드로 엑세스토큰 가져오기
         String accessToken = getAccessToken(code, state);
 
-        // 엑세스토큰으로 유저정보 가져오기
-        JsonNode naverUserInfo = getNaverUserInfo(accessToken);
+        // 2. 엑세스토큰으로 유저정보 가져오기
+        NaverUserInfoDto naverUserInfo = getNaverUserInfo(accessToken);
 
-        // 유저확인 & 회원가입
+        // 3. 유저확인 & 회원가입
         User naverUser = getUser(naverUserInfo);
 
-        // 시큐리티 강제 로그인
+        // 4. 시큐리티 강제 로그인
         Authentication authentication = securityLogin(naverUser);
 
-        // jwt 토큰 발급
+        //5. jwt 토큰 발급
         jwtToken(authentication, response);
     }
 
-    // 인가코드로 엑세스토큰 가져오기
+    // 1. 인가코드로 엑세스토큰 가져오기
     private String getAccessToken(String code, String state) throws JsonProcessingException {
 
         // 헤더에 Content-type 지정
@@ -94,8 +96,8 @@ public class NaverUserService {
         return accessToken;
     }
 
-    // 엑세스토큰으로 유저정보 가져오기
-    private JsonNode getNaverUserInfo(String accessToken) throws JsonProcessingException {
+    // 2. 엑세스토큰으로 유저정보 가져오기
+    private NaverUserInfoDto getNaverUserInfo(String accessToken) throws JsonProcessingException {
 
         // 헤더에 엑세스토큰 담기, Content-type 지정
         HttpHeaders headers = new HttpHeaders();
@@ -114,54 +116,83 @@ public class NaverUserService {
         // response에서 유저정보 가져오기
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode naverUserInfo = objectMapper.readTree(responseBody);
-        return naverUserInfo;
+        JsonNode jsonNode = objectMapper.readTree(responseBody);
+
+        String provider = "naver";
+        String username = provider + "_" + jsonNode.get("response").get("id").asText();
+        String nickname = jsonNode.get("response").get("nickname").asText();
+
+        return new NaverUserInfoDto(username, nickname);
     }
 
-    // 유저확인 & 회원가입
-    private User getUser(JsonNode naverUserInfo) {
+    // 3. 유저확인 & 회원가입
+    private User getUser(NaverUserInfoDto naverUserInfo) {
 
-        // 유저정보 작성
-        String providerId = naverUserInfo.get("response").get("id").asText();
-        String providerEmail = naverUserInfo.get("response").get("email").asText();
-        String provider = "naver";
-        String username = provider + "_" + providerId;
-        String nickname = naverUserInfo.get("response").get("nickname").asText();
-        Optional<User> nicknameCheck = userRepository.findByNickname(nickname);
-        if (nicknameCheck.isPresent()) {
-            String tempNickname = nickname;
-            int i = 1;
-            while (true){
-                nickname = tempNickname;
-                nickname = nickname + "_" + i;
-                Optional<User> nicknameCheck2 = userRepository.findByNickname(nickname);
-                if (!nicknameCheck2.isPresent()) {
-                    break;
-                }
-                i++;
-            }
-        }
-        String password = passwordEncoder.encode(UUID.randomUUID().toString());
-//        String profileImgUrl = "https://makecake.s3.ap-northeast-2.amazonaws.com/PROFILE/ef771589-abc6-4ddd-951c-73cc2420aa2fKakaoTalk_20220329_214148108.png";
-//        UserRoleEnum role = UserRoleEnum.USER;
+//        // 유저정보 작성
+//        String providerId = naverUserInfo.get("response").get("id").asText();
+//        String providerEmail = naverUserInfo.get("response").get("email").asText();
+//        String provider = "naver";
+//        String username = provider + "_" + providerId;
+//        String nickname = naverUserInfo.get("response").get("nickname").asText();
+//        Optional<User> nicknameCheck = userRepository.findByNickname(nickname);
+//        if (nicknameCheck.isPresent()) {
+//            String tempNickname = nickname;
+//            int i = 1;
+//            while (true){
+//                nickname = tempNickname;
+//                nickname = nickname + "_" + i;
+//                Optional<User> nicknameCheck2 = userRepository.findByNickname(nickname);
+//                if (!nicknameCheck2.isPresent()) {
+//                    break;
+//                }
+//                i++;
+//            }
+//        }
+//        String password = passwordEncoder.encode(UUID.randomUUID().toString());
+////        String profileImgUrl = "https://makecake.s3.ap-northeast-2.amazonaws.com/PROFILE/ef771589-abc6-4ddd-951c-73cc2420aa2fKakaoTalk_20220329_214148108.png";
+////        UserRoleEnum role = UserRoleEnum.USER;
+//
+//        // DB에서 username으로 가져오기 없으면 회원가입
+//        User foundUser = userRepository.findByUsername(username).orElse(null);
+//        if (foundUser == null) {
+//            foundUser = User.builder()
+//                    .username(username)
+//                    .nickname(nickname)
+//                    .password(password)
+////                    .profileImgUrl(profileImgUrl)
+////                    .profileImgName(null)
+////                    .role(role)
+////                    .provider(provider)
+////                    .providerId(providerId)
+////                    .providerEmail(providerEmail)
+//                    .build();
+//            userRepository.save(foundUser);
+//        }
+//        return foundUser;
 
-        // DB에서 username으로 가져오기 없으면 회원가입
-        User foundUser = userRepository.findByUsername(username).orElse(null);
-        if (foundUser == null) {
-            foundUser = User.builder()
-                    .username(username)
-                    .nickname(nickname)
-                    .password(password)
-//                    .profileImgUrl(profileImgUrl)
-//                    .profileImgName(null)
-//                    .role(role)
-//                    .provider(provider)
-//                    .providerId(providerId)
-//                    .providerEmail(providerEmail)
-                    .build();
-            userRepository.save(foundUser);
+        String naverusername =naverUserInfo.getUsername();
+        User naverUser = userRepository.findByUsername(naverusername)
+                .orElse(null);
+
+        if (naverUser == null) {
+            // 회원가입
+            // username: kakao nickname
+            String nickname = naverUserInfo.getNickname();
+
+            // password: random UUID
+            String password = UUID.randomUUID().toString();
+            String encodedPassword = passwordEncoder.encode(password);
+
+            String userImageUrl="없음";
+            Long userExp=0L;
+            Long userLevel=0L;
+            Long totalPrice=0L;
+
+            naverUser = new User(naverusername, encodedPassword,nickname,userImageUrl,userExp,userLevel,totalPrice);
+            userRepository.save(naverUser);
+
         }
-        return foundUser;
+        return naverUser;
     }
 
     // 시큐리티 강제 로그인
