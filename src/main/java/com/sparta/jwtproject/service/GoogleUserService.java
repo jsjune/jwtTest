@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.jwtproject.dto.GoogleUserInfoDto;
-import com.sparta.jwtproject.dto.KakaoUserInfoDto;
 import com.sparta.jwtproject.model.User;
 import com.sparta.jwtproject.repository.UserRepository;
 import com.sparta.jwtproject.security.UserDetailsImpl;
@@ -26,7 +25,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -71,10 +69,10 @@ public class GoogleUserService {
 
         // 바디에 필요한 정보 담기
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("client_id" , "900854927186-8iv6ke6qdiehl5v2t6gbge8pjo0agk46.apps.googleusercontent.com");
-        body.add("client_secret", "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");
+        body.add("client_id" , "77683946484-86n78jead6i4agakkjdf3482c3609des.apps.googleusercontent.com");
+        body.add("client_secret", "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");
         body.add("code", code);
-        body.add("redirect_uri", "http://localhost:8080/user/google/callback");
+        body.add("redirect_uri", "http://localhost:3000/user/google/callback");
         body.add("grant_type", "authorization_code");
 
         // POST 요청 보내기
@@ -127,43 +125,6 @@ public class GoogleUserService {
     // 3. 유저확인 & 회원가입
     private User getUser(GoogleUserInfoDto googleUserInfo) {
 
-        // 유저정보 작성
-//        String providerId = googleUserInfo.get("sub").asText();
-//        String providerEmail = googleUserInfo.get("email").asText();
-//        String provider = "google";
-//        String username = provider + "_" + providerId;
-//        String nickname = googleUserInfo.get("name").asText();
-//        if (nicknameCheck.isPresent()) {
-//            String tempNickname = nickname;
-//            int i = 1;
-//            while (true){
-//                nickname = tempNickname + "_" + i;
-//                Optional<User> nicknameCheck2 = userRepository.findByNickname(nickname);
-//                if (!nicknameCheck2.isPresent()) {
-//                    break;
-//                }
-//                i++;
-//            }
-//        }
-//        String password = passwordEncoder.encode(UUID.randomUUID().toString());
-//        // DB에서 username으로 가져오기 없으면 회원가입
-//        User findUser = userRepository.findByUsername(username).orElse(null);
-//        if (findUser == null) {
-//            findUser = User.builder()
-//                    .username(username)
-//                    .nickname(nickname)
-//                    .password(password)
-////                    .profileImgUrl(profileImgUrl)
-////                    .profileImgName(null)
-////                    .role(role)
-////                    .provider(provider)
-////                    .providerId(providerId)
-////                    .providerEmail(providerEmail)
-//                    .build();
-//            userRepository.save(findUser);
-//        }
-//        return findUser;
-
         String googlename = googleUserInfo.getUsername();
         User googleUser = userRepository.findByUsername(googlename).orElse(null);
 
@@ -185,18 +146,6 @@ public class GoogleUserService {
     // 4. 시큐리티 강제 로그인
     private Authentication securityLogin(User findUser) {
 
-//        // userDetails 생성
-//        UserDetailsImpl userDetails = new UserDetailsImpl(findUser);
-//        log.info("google 로그인 완료 : " + userDetails.getUser().getUsername());
-//        // UsernamePasswordAuthenticationToken 발급
-//        Authentication authentication = new UsernamePasswordAuthenticationToken(
-//                userDetails,
-//                null,
-//                userDetails.getAuthorities()
-//        );
-//        // 강제로 시큐리티 세션에 접근하여 authentication 객체를 저장
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
-//        return userDetails;
         UserDetails userDetails = new UserDetailsImpl(findUser);
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -208,17 +157,6 @@ public class GoogleUserService {
         UserDetailsImpl userDetailsImpl = ((UserDetailsImpl) authentication.getPrincipal());
         String token = JwtTokenUtils.generateJwtToken(userDetailsImpl);
         response.addHeader("Authorization", "BEARER" + " " + token);
-//        String token = JwtTokenUtils.generateJwtToken(userDetails);
-//        String jwtToken = JWT.create()
-//                // 토큰이름
-//                .withSubject("JwtToken : " + userDetails.getUser().getUsername())
-//                // 유효시간
-//                .withClaim("expireDate", new Date(System.currentTimeMillis() + JwtProperties.tokenValidTime))
-//                // username
-//                .withClaim("username", userDetails.getUser().getUsername())
-//                // HMAC256 복호화
-//                .sign(Algorithm.HMAC256(JwtProperties.secretKey));
-//        log.info("jwtToken : " + token);
-//        response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + token);
+
     }
 }

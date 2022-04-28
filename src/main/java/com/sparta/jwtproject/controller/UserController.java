@@ -2,17 +2,13 @@ package com.sparta.jwtproject.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sparta.jwtproject.dto.KakaoUserInfoDto;
-import com.sparta.jwtproject.dto.ResponseDto;
-import com.sparta.jwtproject.dto.SignUpRequestDto;
-import com.sparta.jwtproject.security.UserDetailsImpl;
 import com.sparta.jwtproject.service.GoogleUserService;
 import com.sparta.jwtproject.service.KakaoUserService;
 import com.sparta.jwtproject.service.NaverUserService;
-import com.sparta.jwtproject.service.UserService;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -48,7 +44,7 @@ public class UserController {
             @RequestParam String code,
             @RequestParam String state,
             HttpServletResponse response
-    ) throws JsonProcessingException {
+    ) throws JsonProcessingException{
         naverUserService.naverLogin(code, state, response);
     }
 }

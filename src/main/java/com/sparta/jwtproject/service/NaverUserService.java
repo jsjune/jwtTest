@@ -1,11 +1,8 @@
 package com.sparta.jwtproject.service;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.jwtproject.dto.KakaoUserInfoDto;
 import com.sparta.jwtproject.dto.NaverUserInfoDto;
 import com.sparta.jwtproject.model.User;
 import com.sparta.jwtproject.repository.UserRepository;
@@ -28,7 +25,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -74,8 +70,8 @@ public class NaverUserService {
         // 바디에 필요한 정보 담기
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
-        body.add("client_id", "dtS0paeSXySSeX_nw9Fh");
-        body.add("client_secret", "naverClientSecret");
+        body.add("client_id", "oq32J_8jgLtjcSRvYUO4");
+        body.add("client_secret", "dc6LwAfBEL");
         body.add("code", code);
         body.add("state", state);
 
@@ -128,48 +124,6 @@ public class NaverUserService {
     // 3. 유저확인 & 회원가입
     private User getUser(NaverUserInfoDto naverUserInfo) {
 
-//        // 유저정보 작성
-//        String providerId = naverUserInfo.get("response").get("id").asText();
-//        String providerEmail = naverUserInfo.get("response").get("email").asText();
-//        String provider = "naver";
-//        String username = provider + "_" + providerId;
-//        String nickname = naverUserInfo.get("response").get("nickname").asText();
-//        Optional<User> nicknameCheck = userRepository.findByNickname(nickname);
-//        if (nicknameCheck.isPresent()) {
-//            String tempNickname = nickname;
-//            int i = 1;
-//            while (true){
-//                nickname = tempNickname;
-//                nickname = nickname + "_" + i;
-//                Optional<User> nicknameCheck2 = userRepository.findByNickname(nickname);
-//                if (!nicknameCheck2.isPresent()) {
-//                    break;
-//                }
-//                i++;
-//            }
-//        }
-//        String password = passwordEncoder.encode(UUID.randomUUID().toString());
-////        String profileImgUrl = "https://makecake.s3.ap-northeast-2.amazonaws.com/PROFILE/ef771589-abc6-4ddd-951c-73cc2420aa2fKakaoTalk_20220329_214148108.png";
-////        UserRoleEnum role = UserRoleEnum.USER;
-//
-//        // DB에서 username으로 가져오기 없으면 회원가입
-//        User foundUser = userRepository.findByUsername(username).orElse(null);
-//        if (foundUser == null) {
-//            foundUser = User.builder()
-//                    .username(username)
-//                    .nickname(nickname)
-//                    .password(password)
-////                    .profileImgUrl(profileImgUrl)
-////                    .profileImgName(null)
-////                    .role(role)
-////                    .provider(provider)
-////                    .providerId(providerId)
-////                    .providerEmail(providerEmail)
-//                    .build();
-//            userRepository.save(foundUser);
-//        }
-//        return foundUser;
-
         String naverusername =naverUserInfo.getUsername();
         User naverUser = userRepository.findByUsername(naverusername)
                 .orElse(null);
@@ -197,17 +151,6 @@ public class NaverUserService {
 
     // 시큐리티 강제 로그인
     private Authentication securityLogin(User foundUser) {
-//        // userDetails 생성
-//        UserDetailsImpl userDetails = new UserDetailsImpl(foundUser);
-//        log.info("naver 로그인 완료 : " + userDetails.getUser().getUsername());
-//        // UsernamePasswordAuthenticationToken 발급
-//        Authentication authentication = new UsernamePasswordAuthenticationToken(
-//                userDetails,
-//                null,
-//                userDetails.getAuthorities()
-//        );
-//        // 강제로 시큐리티 세션에 접근하여 authentication 객체를 저장
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetails userDetails = new UserDetailsImpl(foundUser);
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -220,16 +163,6 @@ public class NaverUserService {
         UserDetailsImpl userDetailsImpl = ((UserDetailsImpl) authentication.getPrincipal());
         String token = JwtTokenUtils.generateJwtToken(userDetailsImpl);
         response.addHeader("Authorization", "BEARER" + " " + token);
-//        String jwtToken = JWT.create()
-//                // 토큰이름
-//                .withSubject("JwtToken : " + userDetails.getUser().getUsername())
-//                // 유효시간
-//                .withClaim("expireDate", new Date(System.currentTimeMillis() + JwtProperties.tokenValidTime))
-//                // username
-//                .withClaim("username", userDetails.getUser().getUsername())
-//                // HMAC256 복호화
-//                .sign(Algorithm.HMAC256(JwtProperties.secretKey));
-//        log.info("jwtToken : " + jwtToken);
-//        response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
+
     }
 }
