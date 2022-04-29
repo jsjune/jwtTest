@@ -1,9 +1,9 @@
-package com.sparta.jwtproject.service;
+package service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.jwtproject.dto.GoogleUserInfoDto;
+import com.sparta.jwtproject.dto.NaverUserInfoDto;
 import com.sparta.jwtproject.model.User;
 import com.sparta.jwtproject.repository.UserRepository;
 import com.sparta.jwtproject.security.UserDetailsImpl;
@@ -30,38 +30,38 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class GoogleUserService {
+public class NaverUserService {
 
-//    @Value("${spring.security.oauth2.client.registration.google.client-id}")
-//    String googleClientId;
+//    @Value("${naver.client-id}")
+//    String naverClientId;
 //
-//    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
-//    String googleClientSecret;
+//    @Value("${naver.client-secret}")
+//    String naverClientSecret;
 
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
-    // 구글 로그인
-    public void googleLogin(String code, HttpServletResponse response) throws JsonProcessingException {
+    // 네이버 로그인
+    public void naverLogin(String code, String state, HttpServletResponse response) throws JsonProcessingException {
 
         // 1. 인가코드로 엑세스토큰 가져오기
-        String accessToken = getAccessToken(code);
+        String accessToken = getAccessToken(code, state);
 
         // 2. 엑세스토큰으로 유저정보 가져오기
-        GoogleUserInfoDto googleUserInfo = getGoogleUserInfo(accessToken);
+        NaverUserInfoDto naverUserInfo = getNaverUserInfo(accessToken);
 
         // 3. 유저확인 & 회원가입
-        com.sparta.jwtproject.model.User foundUser = getUser(googleUserInfo);
+        User naverUser = getUser(naverUserInfo);
 
         // 4. 시큐리티 강제 로그인
-        Authentication authentication = securityLogin(foundUser);
+        Authentication authentication = securityLogin(naverUser);
 
-        // 5. jwt 토큰 발급
+        //5. jwt 토큰 발급
         jwtToken(authentication, response);
     }
 
     // 1. 인가코드로 엑세스토큰 가져오기
-    private String getAccessToken(String code) throws JsonProcessingException {
+    private String getAccessToken(String code, String state) throws JsonProcessingException {
 
         // 헤더에 Content-type 지정
         HttpHeaders headers = new HttpHeaders();
@@ -69,18 +69,18 @@ public class GoogleUserService {
 
         // 바디에 필요한 정보 담기
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("client_id" , "77683946484-86n78jead6i4agakkjdf3482c3609des.apps.googleusercontent.com");
-        body.add("client_secret", "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");
-        body.add("code", code);
-        body.add("redirect_uri", "http://localhost:3000/user/google/callback");
         body.add("grant_type", "authorization_code");
+        body.add("client_id", "oq32J_8jgLtjcSRvYUO4");
+        body.add("client_secret", "dc6LwAfBEL");
+        body.add("code", code);
+        body.add("state", state);
 
         // POST 요청 보내기
-        HttpEntity<MultiValueMap<String, String>> googleToken = new HttpEntity<>(body, headers);
+        HttpEntity<MultiValueMap<String, String>> naverToken = new HttpEntity<>(body, headers);
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.exchange(
-                "https://oauth2.googleapis.com/token",
-                HttpMethod.POST, googleToken,
+                "https://nid.naver.com/oauth2.0/token",
+                HttpMethod.POST, naverToken,
                 String.class
         );
 
@@ -93,7 +93,7 @@ public class GoogleUserService {
     }
 
     // 2. 엑세스토큰으로 유저정보 가져오기
-    private GoogleUserInfoDto getGoogleUserInfo(String accessToken) throws JsonProcessingException {
+    private NaverUserInfoDto getNaverUserInfo(String accessToken) throws JsonProcessingException {
 
         // 헤더에 엑세스토큰 담기, Content-type 지정
         HttpHeaders headers = new HttpHeaders();
@@ -101,11 +101,11 @@ public class GoogleUserService {
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
         // POST 요청 보내기
-        HttpEntity<MultiValueMap<String, String>> googleUser = new HttpEntity<>(headers);
+        HttpEntity<MultiValueMap<String, String>> naverUser = new HttpEntity<>(headers);
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.exchange(
-                "https://openidconnect.googleapis.com/v1/userinfo",
-                HttpMethod.POST, googleUser,
+                "https://openapi.naver.com/v1/nid/me",
+                HttpMethod.POST, naverUser,
                 String.class
         );
 
@@ -114,22 +114,26 @@ public class GoogleUserService {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
 
-        String provider = "google";
-        String username = provider + "_" + jsonNode.get("sub").asText();
-        String nickname = jsonNode.get("name").asText();
+        String provider = "naver";
+        String username = provider + "_" + jsonNode.get("response").get("id").asText();
+        String nickname = jsonNode.get("response").get("nickname").asText();
 
-        return new GoogleUserInfoDto(username, nickname);
-
+        return new NaverUserInfoDto(username, nickname);
     }
 
     // 3. 유저확인 & 회원가입
-    private User getUser(GoogleUserInfoDto googleUserInfo) {
+    private User getUser(NaverUserInfoDto naverUserInfo) {
 
-        String googlename = googleUserInfo.getUsername();
-        User googleUser = userRepository.findByUsername(googlename).orElse(null);
+        String naverusername =naverUserInfo.getUsername();
+        User naverUser = userRepository.findByUsername(naverusername)
+                .orElse(null);
 
-        if (googleUser == null) {
-            String nickname = googleUserInfo.getNickname();
+        if (naverUser == null) {
+            // 회원가입
+            // username: kakao nickname
+            String nickname = naverUserInfo.getNickname();
+
+            // password: random UUID
             String password = UUID.randomUUID().toString();
             String encodedPassword = passwordEncoder.encode(password);
 
@@ -137,23 +141,25 @@ public class GoogleUserService {
             Long userExp=0L;
             Long userLevel=0L;
             Long totalPrice=0L;
-            googleUser = new User(googlename,encodedPassword, nickname,userImageUrl,userExp,userLevel,totalPrice);
-        }
 
-        return googleUser;
+            naverUser = new User(naverusername, encodedPassword,nickname,userImageUrl,userExp,userLevel,totalPrice);
+            userRepository.save(naverUser);
+
+        }
+        return naverUser;
     }
 
-    // 4. 시큐리티 강제 로그인
-    private Authentication securityLogin(User findUser) {
-
-        UserDetails userDetails = new UserDetailsImpl(findUser);
+    // 시큐리티 강제 로그인
+    private Authentication securityLogin(User foundUser) {
+        UserDetails userDetails = new UserDetailsImpl(foundUser);
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return authentication;
     }
 
-    // 5. jwt 토큰 발급
+    // jwt 토큰 발급
     private void jwtToken(Authentication authentication,HttpServletResponse response) {
+
         UserDetailsImpl userDetailsImpl = ((UserDetailsImpl) authentication.getPrincipal());
         String token = JwtTokenUtils.generateJwtToken(userDetailsImpl);
         response.addHeader("Authorization", "BEARER" + " " + token);

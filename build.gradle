@@ -39,6 +39,11 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-jackson:0.11.2'
     implementation 'com.auth0:java-jwt:3.13.0'
 //    implementation("org.springframework.cloud:spring-cloud-starter-aws:2.0.1.RELEASE")
+
+    implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
+
+    implementation group: 'com.google.code.geocoder-java', name: 'geocoder-java', version: '0.16'
+
 }
 
 tasks.named('test') {

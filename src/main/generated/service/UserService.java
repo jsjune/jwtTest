@@ -1,4 +1,4 @@
-package com.sparta.jwtproject.service;
+package service;
 
 import com.sparta.jwtproject.dto.ResponseDto;
 import com.sparta.jwtproject.dto.SignUpRequestDto;

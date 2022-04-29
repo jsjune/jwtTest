@@ -1,4 +1,4 @@
-package com.sparta.jwtproject.service;
+package service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -107,8 +107,8 @@ public class KakaoUserService {
         JsonNode jsonNode = objectMapper.readTree(responseBody);
 
         String provider = "kakao";
-        String username = provider + "_" + jsonNode.get("id").asText();
-        String nickname = jsonNode.get("properties")
+        String username = provider + "_" + jsonNode.get("id").asText(); // 로그인 아이디
+        String nickname = jsonNode.get("properties") // 마이페이지 닉네임
                 .get("nickname").asText();
 
         return new KakaoUserInfoDto(username, nickname);

@@ -1,9 +1,6 @@
 package com.sparta.jwtproject.model;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -53,5 +50,6 @@ public class User {
         this.password=password;
         this.nickname=nickname;
     }
+
 }
 

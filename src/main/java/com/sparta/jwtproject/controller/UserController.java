@@ -2,9 +2,9 @@ package com.sparta.jwtproject.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sparta.jwtproject.dto.KakaoUserInfoDto;
-import com.sparta.jwtproject.service.GoogleUserService;
-import com.sparta.jwtproject.service.KakaoUserService;
-import com.sparta.jwtproject.service.NaverUserService;
+import service.GoogleUserService;
+import service.KakaoUserService;
+import service.NaverUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
