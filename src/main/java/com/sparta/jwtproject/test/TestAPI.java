@@ -1,4 +1,4 @@
-package com.sparta.jwtproject;
+package com.sparta.jwtproject.test;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

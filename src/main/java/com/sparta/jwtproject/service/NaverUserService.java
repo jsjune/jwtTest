@@ -1,9 +1,9 @@
-package service;
+package com.sparta.jwtproject.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.jwtproject.dto.NaverUserInfoDto;
+import com.sparta.jwtproject.dto.SocialLoginDto;
 import com.sparta.jwtproject.model.User;
 import com.sparta.jwtproject.repository.UserRepository;
 import com.sparta.jwtproject.security.UserDetailsImpl;
@@ -48,7 +48,7 @@ public class NaverUserService {
         String accessToken = getAccessToken(code, state);
 
         // 2. 엑세스토큰으로 유저정보 가져오기
-        NaverUserInfoDto naverUserInfo = getNaverUserInfo(accessToken);
+        SocialLoginDto naverUserInfo = getNaverUserInfo(accessToken);
 
         // 3. 유저확인 & 회원가입
         User naverUser = getUser(naverUserInfo);
@@ -93,7 +93,7 @@ public class NaverUserService {
     }
 
     // 2. 엑세스토큰으로 유저정보 가져오기
-    private NaverUserInfoDto getNaverUserInfo(String accessToken) throws JsonProcessingException {
+    private SocialLoginDto getNaverUserInfo(String accessToken) throws JsonProcessingException {
 
         // 헤더에 엑세스토큰 담기, Content-type 지정
         HttpHeaders headers = new HttpHeaders();
@@ -118,11 +118,11 @@ public class NaverUserService {
         String username = provider + "_" + jsonNode.get("response").get("id").asText();
         String nickname = jsonNode.get("response").get("nickname").asText();
 
-        return new NaverUserInfoDto(username, nickname);
+        return new SocialLoginDto(username, nickname);
     }
 
     // 3. 유저확인 & 회원가입
-    private User getUser(NaverUserInfoDto naverUserInfo) {
+    private User getUser(SocialLoginDto naverUserInfo) {
 
         String naverusername =naverUserInfo.getUsername();
         User naverUser = userRepository.findByUsername(naverusername)
@@ -138,11 +138,9 @@ public class NaverUserService {
             String encodedPassword = passwordEncoder.encode(password);
 
             String userImageUrl="없음";
-            Long userExp=0L;
-            Long userLevel=0L;
-            Long totalPrice=0L;
+            String userTitle="초보자";
 
-            naverUser = new User(naverusername, encodedPassword,nickname,userImageUrl,userExp,userLevel,totalPrice);
+            naverUser = new User(naverusername, encodedPassword,nickname,userImageUrl,userTitle);
             userRepository.save(naverUser);
 
         }

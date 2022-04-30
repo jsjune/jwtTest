@@ -1,10 +1,10 @@
 package com.sparta.jwtproject.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sparta.jwtproject.dto.KakaoUserInfoDto;
-import service.GoogleUserService;
-import service.KakaoUserService;
-import service.NaverUserService;
+import com.sparta.jwtproject.dto.SocialLoginDto;
+import com.sparta.jwtproject.service.GoogleUserService;
+import com.sparta.jwtproject.service.KakaoUserService;
+import com.sparta.jwtproject.service.NaverUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,7 +22,7 @@ public class UserController {
 
     // 카카오 로그인
     @GetMapping("/user/kakao/callback")
-    public KakaoUserInfoDto kakaoLogin(
+    public SocialLoginDto kakaoLogin(
             @RequestParam String code,
             HttpServletResponse response
     ) throws JsonProcessingException {

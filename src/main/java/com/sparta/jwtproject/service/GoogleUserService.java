@@ -1,9 +1,9 @@
-package service;
+package com.sparta.jwtproject.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.jwtproject.dto.GoogleUserInfoDto;
+import com.sparta.jwtproject.dto.SocialLoginDto;
 import com.sparta.jwtproject.model.User;
 import com.sparta.jwtproject.repository.UserRepository;
 import com.sparta.jwtproject.security.UserDetailsImpl;
@@ -48,10 +48,10 @@ public class GoogleUserService {
         String accessToken = getAccessToken(code);
 
         // 2. 엑세스토큰으로 유저정보 가져오기
-        GoogleUserInfoDto googleUserInfo = getGoogleUserInfo(accessToken);
+        SocialLoginDto googleUserInfo = getGoogleUserInfo(accessToken);
 
         // 3. 유저확인 & 회원가입
-        com.sparta.jwtproject.model.User foundUser = getUser(googleUserInfo);
+        User foundUser = getUser(googleUserInfo);
 
         // 4. 시큐리티 강제 로그인
         Authentication authentication = securityLogin(foundUser);
@@ -93,7 +93,7 @@ public class GoogleUserService {
     }
 
     // 2. 엑세스토큰으로 유저정보 가져오기
-    private GoogleUserInfoDto getGoogleUserInfo(String accessToken) throws JsonProcessingException {
+    private SocialLoginDto getGoogleUserInfo(String accessToken) throws JsonProcessingException {
 
         // 헤더에 엑세스토큰 담기, Content-type 지정
         HttpHeaders headers = new HttpHeaders();
@@ -118,12 +118,12 @@ public class GoogleUserService {
         String username = provider + "_" + jsonNode.get("sub").asText();
         String nickname = jsonNode.get("name").asText();
 
-        return new GoogleUserInfoDto(username, nickname);
+        return new SocialLoginDto(username, nickname);
 
     }
 
     // 3. 유저확인 & 회원가입
-    private User getUser(GoogleUserInfoDto googleUserInfo) {
+    private User getUser(SocialLoginDto googleUserInfo) {
 
         String googlename = googleUserInfo.getUsername();
         User googleUser = userRepository.findByUsername(googlename).orElse(null);
@@ -134,10 +134,9 @@ public class GoogleUserService {
             String encodedPassword = passwordEncoder.encode(password);
 
             String userImageUrl="없음";
-            Long userExp=0L;
-            Long userLevel=0L;
-            Long totalPrice=0L;
-            googleUser = new User(googlename,encodedPassword, nickname,userImageUrl,userExp,userLevel,totalPrice);
+            String userTitle="초보자";
+
+            googleUser = new User(googlename,encodedPassword, nickname,userImageUrl,userTitle);
         }
 
         return googleUser;

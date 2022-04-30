@@ -1,12 +1,14 @@
 package com.sparta.jwtproject.model;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 
-@Entity
 @Getter
 @Setter
+@Entity
 @NoArgsConstructor
 public class User {
     @Id
@@ -17,39 +19,23 @@ public class User {
     private String username;
 
     @Column(nullable = false)
-    private String password;
-
-    @Column(nullable = false)
     private String nickname;
 
+    @Column(nullable = false)
+    private String password;
+
     @Column
-    private String userImageUrl;
+    private String userImgUrl;
 
-    @Column(nullable = false)
-    private Long userExp;
+    @Column
+    private String userTitle;
 
-    @Column(nullable = false)
-    private Long userLevel;
-
-    @Column(nullable = false)
-    private Long totalPrice;
-
-    public User(String kakaousername, String password, String nickname, String userImageUrl, Long userExp, Long userLevel, Long totalPrice) {
-        this.username = kakaousername;
-        this.password = password;
+    public User(String username, String encodedPassword, String nickname, String userImageUrl, String userTitle) {
+        this.username = username;
+        this.password = encodedPassword;
         this.nickname = nickname;
-        this.userImageUrl = userImageUrl;
-        this.userExp = userExp;
-        this.userLevel = userLevel;
-        this.totalPrice = totalPrice;
-    }
-
-    @Builder
-    public User(String username, String password, String nickname) {
-        this.username=username;
-        this.password=password;
-        this.nickname=nickname;
+        this.userImgUrl = userImageUrl;
+        this.userTitle = userTitle;
     }
 
 }
-
